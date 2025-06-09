@@ -187,7 +187,7 @@ def remove_punctuation_and_length(text):
 def check_model_key(modelType, modelKey):
     if "你" in modelKey:
         raise ValueError(
-            "你还没配置" + modelType + "的密钥，请检查一下所使用的LLM是否配置了密钥"
+            "You haven't configured the key for " + modelType + ", please check if the LLM you are using has been configured with a key"
         )
     return True
 

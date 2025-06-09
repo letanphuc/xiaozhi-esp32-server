@@ -16,9 +16,9 @@ logger = setup_logging()
 
 async def wait_for_exit() -> None:
     """
-    阻塞直到收到 Ctrl‑C / SIGTERM。
-    - Unix: 使用 add_signal_handler
-    - Windows: 依赖 KeyboardInterrupt
+    Block until Ctrl-C / SIGTERM is received.
+    - Unix: using add_signal_handler
+    - Windows: rely on KeyboardInterrupt
     """
     loop = asyncio.get_running_loop()
     stop_event = asyncio.Event()
@@ -28,8 +28,8 @@ async def wait_for_exit() -> None:
             loop.add_signal_handler(sig, stop_event.set)
         await stop_event.wait()
     else:
-        # Windows：await一个永远pending的fut，
-        # 让 KeyboardInterrupt 冒泡到 asyncio.run，以此消除遗留普通线程导致进程退出阻塞的问题
+        # Windows: await a forever-pending future,
+        # let KeyboardInterrupt bubble up to asyncio.run to eliminate issues with lingering threads blocking process exit
         try:
             await asyncio.Future()
         except KeyboardInterrupt:  # Ctrl‑C
@@ -37,30 +37,30 @@ async def wait_for_exit() -> None:
 
 
 async def monitor_stdin():
-    """监控标准输入，消费回车键"""
+    """Monitor standard input, consume Enter key"""
     while True:
-        await ainput()  # 异步等待输入，消费回车
+        await ainput()  # Asynchronously wait for input, consume Enter
 
 
 async def main():
     check_ffmpeg_installed()
     config = load_config()
 
-    # 默认使用manager-api的secret作为auth_key
-    # 如果secret为空，则生成随机密钥
-    # auth_key用于jwt认证，比如视觉分析接口的jwt认证
+    # Use manager-api's secret as auth_key by default
+    # If secret is empty, generate a random key
+    # auth_key is used for jwt authentication, e.g., for vision analysis API
     auth_key = config.get("manager-api", {}).get("secret", "")
     if not auth_key or len(auth_key) == 0 or "你" in auth_key:
         auth_key = str(uuid.uuid4().hex)
     config["server"]["auth_key"] = auth_key
 
-    # 添加 stdin 监控任务
+    # Add stdin monitoring task
     stdin_task = asyncio.create_task(monitor_stdin())
 
-    # 启动 WebSocket 服务器
+    # Start WebSocket server
     ws_server = WebSocketServer(config)
     ws_task = asyncio.create_task(ws_server.start())
-    # 启动 Simple http 服务器
+    # Start Simple HTTP server
     ota_server = SimpleHttpServer(config)
     ota_task = asyncio.create_task(ota_server.start())
 
@@ -68,60 +68,60 @@ async def main():
     port = int(config["server"].get("http_port", 8003))
     if not read_config_from_api:
         logger.bind(tag=TAG).info(
-            "OTA接口是\t\thttp://{}:{}/xiaozhi/ota/",
+            "OTA API URL:\t\thttp://{}:{}/xiaozhi/ota/",
             get_local_ip(),
             port,
         )
     logger.bind(tag=TAG).info(
-        "视觉分析接口是\thttp://{}:{}/mcp/vision/explain",
+        "Vision analysis API:\thttp://{}:{}/mcp/vision/explain",
         get_local_ip(),
         port,
     )
 
-    # 获取WebSocket配置，使用安全的默认值
+    # Get WebSocket configuration, use safe default values
     websocket_port = 8000
     server_config = config.get("server", {})
     if isinstance(server_config, dict):
         websocket_port = int(server_config.get("port", 8000))
 
     logger.bind(tag=TAG).info(
-        "Websocket地址是\tws://{}:{}/xiaozhi/v1/",
+        "WebSocket URL:\t\tws://{}:{}/xiaozhi/v1/",
         get_local_ip(),
         websocket_port,
     )
 
     logger.bind(tag=TAG).info(
-        "=======上面的地址是websocket协议地址，请勿用浏览器访问======="
+        "=======The address above is for WebSocket protocol, do not access with browser======="
     )
     logger.bind(tag=TAG).info(
-        "如想测试websocket请用谷歌浏览器打开test目录下的test_page.html"
+        "To test WebSocket, please open test_page.html in the test directory with Chrome"
     )
     logger.bind(tag=TAG).info(
         "=============================================================\n"
     )
 
     try:
-        await wait_for_exit()  # 阻塞直到收到退出信号
+        await wait_for_exit()  # Block until exit signal is received
     except asyncio.CancelledError:
-        print("任务被取消，清理资源中...")
+        print("Task canceled, cleaning up resources...")
     finally:
-        # 取消所有任务（关键修复点）
+        # Cancel all tasks (critical fix point)
         stdin_task.cancel()
         ws_task.cancel()
         if ota_task:
             ota_task.cancel()
 
-        # 等待任务终止（必须加超时）
+        # Wait for tasks to terminate (must include timeout)
         await asyncio.wait(
             [stdin_task, ws_task, ota_task] if ota_task else [stdin_task, ws_task],
             timeout=3.0,
             return_when=asyncio.ALL_COMPLETED,
         )
-        print("服务器已关闭，程序退出。")
+        print("Server closed, program exiting.")
 
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("手动中断，程序终止。")
+        print("Manual interruption, program terminated.")

@@ -33,11 +33,11 @@ emoji_map = {
 
 
 async def sendAudioMessage(conn, sentenceType, audios, text):
-    # 发送句子开始消息
-    conn.logger.bind(tag=TAG).info(f"发送音频消息: {sentenceType}, {text}")
+    # Send sentence start message
+    conn.logger.bind(tag=TAG).info(f"Sending audio message: {sentenceType}, {text}")
     if text is not None:
         emotion = analyze_emotion(text)
-        emoji = emoji_map.get(emotion, "🙂")  # 默认使用笑脸
+        emoji = emoji_map.get(emotion, "🙂")  # Default to smiley face
         await conn.websocket.send(
             json.dumps(
                 {
@@ -50,7 +50,7 @@ async def sendAudioMessage(conn, sentenceType, audios, text):
         )
     pre_buffer = False
     if conn.tts.tts_audio_first_sentence and text is not None:
-        conn.logger.bind(tag=TAG).info(f"发送第一段语音: {text}")
+        conn.logger.bind(tag=TAG).info(f"Sending first audio segment: {text}")
         conn.tts.tts_audio_first_sentence = False
         pre_buffer = True
 
@@ -60,7 +60,7 @@ async def sendAudioMessage(conn, sentenceType, audios, text):
 
     await send_tts_message(conn, "sentence_end", text)
 
-    # 发送结束消息（如果是最后一个文本）
+    # Send end message (if this is the last text)
     if conn.llm_finish_task and sentenceType == SentenceType.LAST:
         await send_tts_message(conn, "stop", None)
         conn.client_is_speaking = False
