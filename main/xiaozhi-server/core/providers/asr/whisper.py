@@ -60,6 +60,7 @@ class ASRProvider(ASRProviderBase):
                     file=f,
                 )
             result = transcription.text.strip()
+            logger.bind(tag=TAG).info(f"Transcription result: {result}")
             return result, (None if self.delete_audio_file else file_path)
         except Exception as e:
             logger.bind(tag=TAG).error(f"Transcription error: {e}", exc_info=True)
