@@ -59,6 +59,7 @@ class LLMProvider(LLMProviderBase):
                         else None
                     )
                     content = delta.content if hasattr(delta, "content") else ""
+                    logger.bind(tag=TAG).debug(f"Chunk content: {content}")
                 except IndexError:
                     content = ""
                 if content:

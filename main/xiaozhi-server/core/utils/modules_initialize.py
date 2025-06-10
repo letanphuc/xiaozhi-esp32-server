@@ -17,23 +17,23 @@ def initialize_modules(
     init_intent=False,
 ) -> Dict[str, Any]:
     """
-    初始化所有模块组件
+    Initialize all module components
 
     Args:
-        config: 配置字典
+        config: Configuration dictionary
 
     Returns:
-        Dict[str, Any]: 包含所有初始化后的模块的字典
+        Dict[str, Any]: Dictionary containing all initialized modules
     """
     modules = {}
 
-    # 初始化TTS模块
+    # Initialize TTS module
     if init_tts:
         select_tts_module = config["selected_module"]["TTS"]
         modules["tts"] = initialize_tts(config)
-        logger.bind(tag=TAG).info(f"初始化组件: tts成功 {select_tts_module}")
+        logger.bind(tag=TAG).info(f"Initialize component: TTS successful {select_tts_module}")
 
-    # 初始化LLM模块
+    # Initialize LLM module
     if init_llm:
         select_llm_module = config["selected_module"]["LLM"]
         llm_type = (
@@ -45,9 +45,9 @@ def initialize_modules(
             llm_type,
             config["LLM"][select_llm_module],
         )
-        logger.bind(tag=TAG).info(f"初始化组件: llm成功 {select_llm_module}")
+        logger.bind(tag=TAG).info(f"Initialize component: LLM successful {select_llm_module}")
 
-    # 初始化Intent模块
+    # Initialize Intent module
     if init_intent:
         select_intent_module = config["selected_module"]["Intent"]
         intent_type = (
@@ -59,9 +59,9 @@ def initialize_modules(
             intent_type,
             config["Intent"][select_intent_module],
         )
-        logger.bind(tag=TAG).info(f"初始化组件: intent成功 {select_intent_module}")
+        logger.bind(tag=TAG).info(f"Initialize component: Intent successful {select_intent_module}")
 
-    # 初始化Memory模块
+    # Initialize Memory module
     if init_memory:
         select_memory_module = config["selected_module"]["Memory"]
         memory_type = (
@@ -74,9 +74,9 @@ def initialize_modules(
             config["Memory"][select_memory_module],
             config.get("summaryMemory", None),
         )
-        logger.bind(tag=TAG).info(f"初始化组件: memory成功 {select_memory_module}")
+        logger.bind(tag=TAG).info(f"Initialize component: Memory successful {select_memory_module}")
 
-    # 初始化VAD模块
+    # Initialize VAD module
     if init_vad:
         select_vad_module = config["selected_module"]["VAD"]
         vad_type = (
@@ -88,13 +88,13 @@ def initialize_modules(
             vad_type,
             config["VAD"][select_vad_module],
         )
-        logger.bind(tag=TAG).info(f"初始化组件: vad成功 {select_vad_module}")
+        logger.bind(tag=TAG).info(f"Initialize component: VAD successful {select_vad_module}")
 
-    # 初始化ASR模块
+    # Initialize ASR module
     if init_asr:
         select_asr_module = config["selected_module"]["ASR"]
         modules["asr"] = initialize_asr(config)
-        logger.bind(tag=TAG).info(f"初始化组件: asr成功 {select_asr_module}")
+        logger.bind(tag=TAG).info(f"Initialize component: ASR successful {select_asr_module}")
     return modules
 
 
